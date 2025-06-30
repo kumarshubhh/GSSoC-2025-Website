@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 
 const EVENT_NAME = "GirlScript Summer of Code 2025";
-const ROLE = "campus_ambassador";
+const ROLE = "mentor";
 
 const initialFormData = {
   name: "",
@@ -32,12 +32,9 @@ export default function CampusAmbassadorApp() {
   const [step, setStep] = useState("email");
   const [status, setStatus] = useState("");
   const [user, setUser] = useState(null);
-  const [application, setApplication] = useState(null);
   const [applicationStatus, setApplicationStatus] = useState(null);
   const [submitStatus, setSubmitStatus] = useState("");
   const [formData, setFormData] = useState(initialFormData);
-
-  console.log(applicationStatus);
 
   useEffect(() => {
     let subscription;
@@ -58,16 +55,13 @@ export default function CampusAmbassadorApp() {
       setStatus("");
       const { data: appData, error } = await supabase
         .from("events")
-        .select("status, application_id")
+        .select("status")
         .eq("participant_id", currentUser.id)
         .eq("role", ROLE)
         .eq("event_name", EVENT_NAME)
         .maybeSingle();
       if (error) console.error(error.message);
-      else {
-        setApplicationStatus(appData?.status || null);
-        setApplication(appData || null);
-      }
+      else setApplicationStatus(appData?.status || null);
     };
 
     const resetState = () => {
@@ -75,7 +69,6 @@ export default function CampusAmbassadorApp() {
       setStep("email");
       setStatus("");
       setApplicationStatus(null);
-      setApplication(null);
     };
 
     init();
@@ -135,7 +128,7 @@ export default function CampusAmbassadorApp() {
           github_url: formData.github,
           twitter_url: formData.twitterUrl || null,
           instagram_url: formData.instagramUrl || null,
-          resume_url: formData.portfolioUrl || null,
+          portfolio_url: formData.portfolioUrl || null,
           discord_tag: formData.discordTag,
           resume_url: formData.portfolioUrl || null,
           promotion_plan: formData.promotionPlan,
@@ -180,16 +173,15 @@ export default function CampusAmbassadorApp() {
 
         <div className="text-center text-white w-full flex flex-col items-center justify-center px-4 mt-48">
           <p className="text-lg mb-4 md:mb-8 text-[#A7ADBE] bg-[#00041F] text-[12px] inline-block px-4 py-2 rounded-full">
-            Campus Ambassador Program
+            Mentor Program
           </p>
           <h1 className="text-2xl md:text-6xl font-bold mb-4">
-            Become An OpenSource <br /> Campus Ambassador
+            Become An <br /> OpenSource Mentor
           </h1>
-          <p className="text-[10px] md:text-sm mb-8 text-[#A7ADBE]">
-            Represent your campus and be a part of the largest open-source{" "}
-            <br /> community in India! Join us as a Campus Ambassador and help
-            spread <br /> the word about the GirlScript Summer of Code (GSSoC)
-            program.
+          <p className="text-[10px] md:text-sm mb-8 text-[#A7ADBE] max-w-[400px]">
+            Represent your campus and be a part of the largest open-source
+            community in India! Join us as a Mentor and help shape the next
+            generation of open-source contributors.
           </p>
 
           {!user ? (
@@ -222,7 +214,7 @@ export default function CampusAmbassadorApp() {
                 {step === "email" ? "Send OTP" : "Verify OTP"}
               </button>
             </form>
-          ) : applicationStatus == "under_review" ? (
+          ) : applicationStatus === "under_review" ? (
             <div className="mb-8 bg-[#00041F] p-6 rounded-lg border border-[#0E122E] md:w-3/5 w-auto text-white flex flex-col items-center shadow-2xl shadow-blue-500/20">
               <h2 className="md:text-xl font-semibold mb-2">
                 Application Status
@@ -232,36 +224,18 @@ export default function CampusAmbassadorApp() {
                 applying!
               </p>
             </div>
-          ) : applicationStatus == "rejected" ? (
-            <div className="mb-8 bg-[#00041F] p-6 rounded-lg border border-[#0E122E] md:w-3/5 w-auto text-white flex flex-col items-center shadow-2xl shadow-blue-500/20">
-              <h2 className="md:text-xl font-semibold mb-2">
-                Application Status
-              </h2>
-              <p className="w-2/3 text-[10px] md:text-[14px] text-[#A7ADBE]">
-                Sorry! Your application was not accepted for this year. Thank
-                you for applying! For any queries, please feel reach out to us
-                at{" "}
-                <a
-                  className="text-[#4C75FF]"
-                  href="mailto:gssoc@girlscript.tech"
-                >
-                  gssoc@girlscript.tech
-                </a>
-                .
-              </p>
-            </div>
-          ) : applicationStatus == "approved" ? (
+          ) : applicationStatus === "approved" ? (
             <div className="mb-8 bg-[#00041F] p-6 rounded-lg border border-[#0E122E] md:w-3/5 w-auto text-white flex flex-col items-center shadow-2xl shadow-blue-500/20">
               <h2 className="md:text-xl font-semibold mb-2">
                 Congratulations! You are accepted!
               </h2>
               <p className="w-2/3 text-[10px] md:text-[14px] text-[#A7ADBE]">
-                Copy your referral code ({application.application_id}) and join
-                our Discord server to get started.
+                Copy your referral code and join our Discord server to get
+                started.
               </p>
               <div className="flex flex-row items-center gap-8">
                 <a
-                  href="https://discord.gg/jxkN3Ek8XQ"
+                  href="https://discord.gg/girlscript"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="cursor-pointer bg-gradient-to-b from-[#4C75FF] to-[#1A4FFF] text-white px-5 py-3 rounded-full font-normal mt-8"
@@ -270,9 +244,7 @@ export default function CampusAmbassadorApp() {
                 </a>
                 <button
                   onClick={() =>
-                    navigator.clipboard.writeText(
-                      application.application_id || "N/A"
-                    )
+                    navigator.clipboard.writeText(user?.id || "N/A")
                   }
                   className="cursor-pointer bg-gradient-to-b from-[#4C75FF] to-[#1A4FFF] text-white px-5 py-3 rounded-full font-normal mt-8"
                 >
@@ -286,7 +258,7 @@ export default function CampusAmbassadorApp() {
               className="mb-8 bg-[#00041F] w-full p-6 rounded-lg border border-[#0E122E] md:w-3/5 text-left shadow-2xl shadow-blue-500/20"
             >
               <h2 className="text-[14px] md:text-2xl font-semibold mb-4">
-                Campus Ambassador Application Form
+                Mentor Application Form
               </h2>
               {Object.entries(initialFormData).map(([key]) => (
                 <div key={key} className="mb-3">
@@ -334,6 +306,7 @@ export default function CampusAmbassadorApp() {
                           "twitterUrl",
                           "instagramUrl",
                           "portfolioUrl",
+                          "referralCode",
                         ].includes(key)
                           ? "url"
                           : "text"
